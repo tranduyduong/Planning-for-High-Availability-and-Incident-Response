@@ -1,38 +1,46 @@
 # Infrastructure
 
 ## AWS Zones
-Zone 1 : US-EAST-2
-Zone 2 : US-WEST-1
+
+Identify your zones here
+us-east-2a, us-east-2b
 
 ## Servers and Clusters
 
 ### Table 1.1 Summary
-| Asset             | Purpose               | Size        | Qty   | DR                                                      |
-|------------       |-------------------    |-------------|-------|---------------------------------------------------------|
-| VPC               | Virtual Network       | -           |   2   | 2 zones, 1 VPC each zone for DR purpose                 |
-| EC2 instances     | Application Servers   | t3.micro    |   6   | 2 zones, 3 instances each zone for DR purpose           |
-| EC2 keypair       | SSH key for access EC2| -           |   2   | 2 zones, 1 keypair each zone for DR purpose             |
-| EKS               | Kubernetes Clusters   | t3.medium   |   4   | 2 zones, 2 nodes each zone for DR purpose               |
-| Prometheus Grafana| Monitoring System     | -           |   2   | 2 zones, 2 nodes each zone for DR purpose               |
-| S3 bucket         | Bucket for terraform  | -           |   2   | 2 zones, 1 bucket each zone for DR purpose              |
-| ALB               | App Load balancer     | -           |   2   | For HA/DR purpose                                       |
-| RDS               | Backend Database      | db.t3.micro |   2   | 1 cluster 2 node on zone 1                              |
-| RDS               | Backend Database      | db.t3.micro |   2   | 1 cluster 2 node replicated from zone 1 to zone 2       |
+
+| Asset        | Purpose                     | Size                                                                   | Qty                                                             | DR                                                                                                           |
+| ------------ | --------------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Asset name   | Brief description           | AWS size eg. t3.micro (if applicable, not all assets will have a size) | Number of nodes/replicas or just how many of a particular asset | Identify if this asset is deployed to DR, replicated, created in multiple locations or just stored elsewhere |
+| EC2 Instance | Deploy flask application    | t3.micro                                                               | 3                                                               | DR                                                                                                           |
+| EKS          | Host Prometheus and Grafana | t3.medium                                                              | 2                                                               | DR                                                                                                           |
+| ALB          | Domain for Grafana          |                                                                        | 1                                                               | DR                                                                                                           |
+| RDS          | Replication Demo            | t2.small                                                               | 2                                                               | Replicated                                                                                                   |
 
 ### Descriptions
-- VPC:  Virtual Private Compute - Networking for cloud infrastructure
-- EC2 instances:  Virtual Machine to running application
-- EC2 keypair:  SSH key for access EC2 instances
-- EKS: Kubernetes cluster for running prometheus and grafana
-- Prometheus Grafana: Monitoring stack to monitor application
-- S3 bucket: Store terraform state
-- ALB: Network load balancing for HA/DR purpose
-- RDS: SQL database cluster for storing data of application
+
+More detailed descriptions of each asset identified above.
+
+- EC2 Instance: The EC2 Instance is used to host the Flask web application. A node exporter is installed inside instances to export metrics to Prometheus.
+- EKS: A Kubernetes cluster is spinned up to deploy Prometheus and Grafana.
+- ALB: The ALB acts like an internet-facing mask and used as a domain for Grafana.
+- RDS: The RDS is used mainly to demonstrate data replication between regions.
 
 ## DR Plan
+
 ### Pre-Steps:
-- Ensure DR site setting and working properly
-- 
+
+List steps you would perform to setup the infrastructure in the other region. It doesn't have to be super detailed, but high-level should suffice.
+
+- Ensure both sites are configured the same.
+- Use Terraform to deploy infrastructure to each region.
+
 ## Steps:
-- Database: Promote replicated cluster RDS on DR site
-- Traffic: Reroute traffic to DR site
+
+You won't actually perform these steps, but write out what you would do to "fail-over" your application and database cluster to the other region. Think about all the pieces that were setup and how you would use those in the other region
+
+- Point your DNS to your secondary region
+  - This can be done with a name provider like Amazon route 53
+- Failover your database replication instances to another region
+  - Manually force the secondary region to become primary at the database level, or
+  - Automatically failover the database by health checks
